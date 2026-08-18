@@ -4,13 +4,26 @@ import SwiftUI
 struct OdoApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
         }
     }
 }
 
-struct ContentView: View {
+private struct RootView: View {
+    @AppStorage("meta.onboardingComplete", store: AppGroup.defaults)
+    private var onboardingComplete = false
+
+    @State private var selectionStore = SelectionStore(
+        database: try! AppDatabase(url: AppGroup.databaseURL)
+    )
+
     var body: some View {
-        Text("Scrollometer — tracking not configured")
+        Group {
+            if onboardingComplete {
+                TodayDebugView()
+            } else {
+                OnboardingFlowView(selectionStore: selectionStore)
+            }
+        }
     }
 }
