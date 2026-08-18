@@ -9,20 +9,40 @@ struct OdoApp: App {
     }
 }
 
+@MainActor
 private struct RootView: View {
     @AppStorage("meta.onboardingComplete", store: AppGroup.defaults)
     private var onboardingComplete = false
 
-    @State private var selectionStore = SelectionStore(
-        database: try! AppDatabase(url: AppGroup.databaseURL)
+    @State private var todayModel = try! TodayModel(
+        database: AppDatabase(url: AppGroup.databaseURL)
     )
 
     var body: some View {
         Group {
             if onboardingComplete {
-                TodayDebugView()
+                TabView {
+                    TodayDashboardView(model: todayModel)
+                        .tabItem {
+                            Label("Today", systemImage: "gauge")
+                        }
+
+                    HistoryView()
+                        .tabItem {
+                            Label("History", systemImage: "chart.bar")
+                        }
+
+                    WeeklyRecapView()
+                        .tabItem {
+                            Label("Recap", systemImage: "sparkles")
+                        }
+                }
             } else {
-                OnboardingFlowView(selectionStore: selectionStore)
+                OnboardingFlowView(
+                    selectionStore: SelectionStore(
+                        database: try! AppDatabase(url: AppGroup.databaseURL)
+                    )
+                )
             }
         }
     }
