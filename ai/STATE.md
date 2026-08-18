@@ -1,6 +1,14 @@
 # STATE — Scrollometer
 
-Updated: 2026-08-18 (session 1: planning + WP1–WP3)
+Updated: 2026-08-18 (session 2: portal registration + entitlement FILED + WP4 merged; WP5+WP6 dispatched to Kimi)
+
+## Session 2 additions
+
+- **Apple Developer portal (Claude-driven browser, Perry authenticated/approved)**: App Group `group.com.martinapps.scrolldistance` + all 4 App IDs registered. Capabilities: app/monitor/report have App Groups + Family Controls (Development) + Family Controls App and Website Usage; widgets has App Groups only.
+- **Family Controls distribution entitlement request SUBMITTED 2026-08-18** — team-level acknowledgment form (new-style, no justification essay). Watch pmartin1912@gmail.com. On grant: mac-setup-checklist "After granted" section.
+- **WP4 (ScrollStore) merged** — Kimi-implemented, reviewed. Watch item for first Mac build: `Configuration.journalMode = .wal` requires GRDB ≥6.16 (Package.swift says `from: 6.0.0`, resolves latest 6.x — fine unless pinned down).
+- **Kimi lane workaround**: launch `kimi-exec.sh --implement ... &` detached inside a single Bash call (wrapper keeps its own --timeout); poll `.orchestrate/logs/*-implement.log` tail for `TurnEnd()`. Direct run_in_background of the wrapper gets killed by the harness and orphans the CLI (see memory note).
+- **WP5+WP6 in flight** (spec `.orchestrate/spec-wp56.md`, worktree `.orchestrate/wt/wp56`): MonitorExtension callbacks + MonitoringService + onboarding/labeling + M1 debug screen. Review CLOSEST on the extension + DeviceActivity API surface.
 
 ## Done
 
