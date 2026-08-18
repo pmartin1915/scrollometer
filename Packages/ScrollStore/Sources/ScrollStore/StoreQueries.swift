@@ -37,6 +37,18 @@ public struct StoreQueries {
         }
     }
 
+    /// Per-app raw usage minutes for a single day (from `daily_usage`).
+    public func perAppMinutes(dayKey: DayKey) throws -> [(tokenHash: String, minutes: Int)] {
+        try database.writer.read { db in
+            let records = try DailyUsageRecord
+                .filter(Column("day_key") == dayKey.rawValue)
+                .order(Column("token_hash"))
+                .fetchAll(db)
+
+            return records.map { (tokenHash: $0.tokenHash, minutes: $0.minutes) }
+        }
+    }
+
     /// Total cached scroll distance per day across a range, ordered by day.
     public func dailyTotals(range: ClosedRange<DayKey>) throws -> [(dayKey: DayKey, feet: Double)] {
         try database.writer.read { db in
