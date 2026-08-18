@@ -28,6 +28,12 @@ struct DistanceProvider: TimelineProvider {
     // MARK: - Read-only access to the shared distance cache
 
     private func readEntry() -> DistanceEntry {
+        // Never create the database from the widget process. If the app hasn't
+        // run yet, fall back to the placeholder instead of triggering migrations.
+        guard FileManager.default.fileExists(atPath: AppGroup.databaseURL.path) else {
+            return placeholderEntry()
+        }
+
         do {
             let database = try AppDatabase(url: AppGroup.databaseURL)
             let queries = StoreQueries(database: database)
@@ -35,8 +41,12 @@ struct DistanceProvider: TimelineProvider {
             let feet = try queries.todayTotalFeet(dayKey: today)
             return DistanceEntry(date: Date(), distanceFeet: feet, isPlaceholder: false)
         } catch {
-            return DistanceEntry(date: Date(), distanceFeet: 0, isPlaceholder: true)
+            return placeholderEntry()
         }
+    }
+
+    private func placeholderEntry() -> DistanceEntry {
+        DistanceEntry(date: Date(), distanceFeet: 0, isPlaceholder: true)
     }
 }
 
