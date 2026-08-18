@@ -19,5 +19,9 @@ let package = Package(
                 .product(name: "GRDB", package: "GRDB.swift"),
             ]
         ),
+        .testTarget(
+            name: "ScrollStoreTests",
+            dependencies: ["ScrollStore"]
+        ),
     ]
 )
