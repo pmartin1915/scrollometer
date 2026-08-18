@@ -5,6 +5,7 @@ import UIKit
 
 /// Resolves the current device's physical screen description for the conversion engine.
 public enum DeviceScreenProvider {
+    @MainActor
     public static func screenForCurrentDevice() -> DeviceScreen {
         if let screen = DeviceScreenCatalog.lookup(modelIdentifier: machineIdentifier()) {
             return screen
