@@ -21,7 +21,11 @@ let package = Package(
         ),
         .testTarget(
             name: "ScrollStoreTests",
-            dependencies: ["ScrollStore"]
+            dependencies: [
+                "ScrollStore",
+                .product(name: "ScrollCore", package: "ScrollCore"),
+                .product(name: "GRDB", package: "GRDB.swift"),
+            ]
         ),
     ]
 )
