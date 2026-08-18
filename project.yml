@@ -24,8 +24,13 @@ targets:
           - "*.entitlements"
     entitlements:
       path: App/Odo.entitlements
-    info:
-      path: App/Info.plist
+    settings:
+      base:
+        # info: is deliberately NOT used — XcodeGen regenerates that plist on every
+        # `xcodegen generate`, clobbering hand-authored keys. INFOPLIST_FILE keeps
+        # the committed plists authoritative.
+        INFOPLIST_FILE: App/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
     dependencies:
       - package: ScrollCore
       - package: ScrollStore
@@ -47,14 +52,18 @@ targets:
           - "*.entitlements"
     entitlements:
       path: MonitorExtension/MonitorExtension.entitlements
-    info:
-      path: MonitorExtension/Info.plist
+    settings:
+      base:
+        INFOPLIST_FILE: MonitorExtension/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
     dependencies:
       - package: ScrollCore
   ReportExtension:
     platform: iOS
     deploymentTarget: "17.0"
-    type: app-extension
+    # DeviceActivityReport extensions are ExtensionKit extensions (EXAppExtensionAttributes),
+    # not legacy NSExtension app extensions.
+    type: extensionkit-extension
     bundleId: com.martinapps.scrolldistance.report
     sources:
       - path: ReportExtension
@@ -63,8 +72,10 @@ targets:
           - "*.entitlements"
     entitlements:
       path: ReportExtension/ReportExtension.entitlements
-    info:
-      path: ReportExtension/Info.plist
+    settings:
+      base:
+        INFOPLIST_FILE: ReportExtension/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
     dependencies:
       - package: ScrollCore
   OdoWidgets:
@@ -79,8 +90,10 @@ targets:
           - "*.entitlements"
     entitlements:
       path: OdoWidgets/OdoWidgets.entitlements
-    info:
-      path: OdoWidgets/Info.plist
+    settings:
+      base:
+        INFOPLIST_FILE: OdoWidgets/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
     dependencies:
       - package: ScrollCore
       - package: ScrollStore
