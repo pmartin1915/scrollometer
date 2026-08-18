@@ -15,6 +15,7 @@ Everything scriptable lives in the repo (`project.yml`, entitlements plists, SPM
 5. **Generate + open**: `xcodegen generate && xed .`
 6. **Signing & Capabilities** (each target): select team; confirm App Group + Family Controls (development) appear from the committed `.entitlements` files. If Xcode complains, toggle the capability on once so it registers with the profile.
 7. **Build to a physical device** (Simulator is useless for Screen Time). Confirm the FamilyControls authorization prompt appears.
+8. **Verify the ReportExtension target shape**: it was authored as an ExtensionKit extension (`type: extensionkit-extension`, `EXAppExtensionAttributes`/`EXExtensionPointIdentifier` in its Info.plist) — the modern form for DeviceActivityReport. If it fails to build or load, create a throwaway "Device Activity Report Extension" from Xcode's template and diff its Info.plist/target settings against ours; correct ours to match and update `project.yml` accordingly.
 
 ## Per-session (after pulling changes authored on Windows)
 
