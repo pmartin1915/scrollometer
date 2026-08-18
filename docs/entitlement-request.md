@@ -1,6 +1,8 @@
 # Family Controls (Distribution) entitlement request — log + submission text
 
-**Status: NOT YET FILED.** This is the #1 operator item and the project's critical-path clock (Apple approval takes ~4 business days to several weeks). File as soon as the App IDs exist (M0 Mac session, step 2 of `mac-setup-checklist.md`).
+**Status: SUBMITTED 2026-08-18** (via Claude-driven browser session, Perry authenticated and approved the submit). Apple's confirmation: "We'll review your request and contact you soon with a status update." **Watch pmartin1912@gmail.com** for the decision; on grant, follow "After the distribution entitlement is granted" in `mac-setup-checklist.md`.
+
+**Process note (2026 form)**: the request is now a TEAM-level acknowledgment — prefilled name/email/Team ID plus agreeing to the Family Controls terms (primary purpose = personal device usage management; no data sharing/ads/brokers). There is no per-bundle-ID justification field anymore; the drafted text below was not needed but is kept for App Review notes reuse.
 
 ## Where
 
