@@ -1,0 +1,21 @@
+name: ScrollCore Tests
+
+on:
+  push:
+    paths:
+      - 'Packages/ScrollCore/**'
+      - '.github/workflows/scrollcore-tests.yml'
+  pull_request:
+    paths:
+      - 'Packages/ScrollCore/**'
+      - '.github/workflows/scrollcore-tests.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: swift:5.10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ScrollCore tests
+        run: swift test --package-path Packages/ScrollCore
