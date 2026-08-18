@@ -19,3 +19,6 @@ Package.resolved
 fastlane/report.xml
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# Orchestration scratch
+.orchestrate/

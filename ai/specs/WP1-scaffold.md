@@ -10,7 +10,7 @@ A complete, XcodeGen-generatable Xcode project definition with 4 targets, App Gr
 - Targets:
   - **Scrollometer** (app): sources `App/`, entitlements `App/Odo.entitlements`, Info.plist `App/Info.plist`, depends on packages `ScrollCore` + `ScrollStore`, embeds the 3 extensions.
   - **MonitorExtension** (app-extension, point `NSExtensionPointIdentifier: com.apple.deviceactivity.monitor-extension`): sources `MonitorExtension/`, depends on `ScrollCore` ONLY (never ScrollStore/GRDB — extension memory budget).
-  - **ReportExtension** (app-extension, `com.apple.deviceactivity.report-extension`): sources `ReportExtension/`, depends on `ScrollCore` only.
+  - **ReportExtension** (app-extension, `com.apple.deviceactivityui.report-extension` — the `deviceactivityui` extension point): sources `ReportExtension/`, depends on `ScrollCore` only.
   - **OdoWidgets** (app-extension, `com.apple.widgetkit-extension`): sources `OdoWidgets/`, depends on `ScrollCore` + `ScrollStore`.
 - Bundle IDs exactly: `com.martinapps.scrolldistance`, `.monitor`, `.report`, `.widgets` suffixed forms as in README.
 - Local SPM packages referenced by path: `Packages/ScrollCore`, `Packages/ScrollStore`.
