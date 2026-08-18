@@ -1,31 +1,99 @@
-import WidgetKit
+import ScrollCore
+import ScrollStore
 import SwiftUI
+import WidgetKit
 
 struct DistanceEntry: TimelineEntry {
     let date: Date
     let distanceFeet: Double
+    let isPlaceholder: Bool
 }
 
 struct DistanceProvider: TimelineProvider {
     func placeholder(in context: Context) -> DistanceEntry {
-        DistanceEntry(date: Date(), distanceFeet: 0)
+        DistanceEntry(date: Date(), distanceFeet: 0, isPlaceholder: true)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (DistanceEntry) -> Void) {
-        completion(DistanceEntry(date: Date(), distanceFeet: 0))
+        completion(readEntry())
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<DistanceEntry>) -> Void) {
-        let entry = DistanceEntry(date: Date(), distanceFeet: 0)
-        completion(Timeline(entries: [entry], policy: .atEnd))
+        let entry = readEntry()
+        let nextUpdate = Date().addingTimeInterval(30 * 60)
+        let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
+        completion(timeline)
+    }
+
+    // MARK: - Read-only access to the shared distance cache
+
+    private func readEntry() -> DistanceEntry {
+        do {
+            let database = try AppDatabase(url: AppGroup.databaseURL)
+            let queries = StoreQueries(database: database)
+            let today = DayKey(date: Date(), timeZone: .current)
+            let feet = try queries.todayTotalFeet(dayKey: today)
+            return DistanceEntry(date: Date(), distanceFeet: feet, isPlaceholder: false)
+        } catch {
+            return DistanceEntry(date: Date(), distanceFeet: 0, isPlaceholder: true)
+        }
     }
 }
 
 struct DailyDistanceWidgetEntryView: View {
     var entry: DistanceProvider.Entry
+    @Environment(\.widgetFamily) var widgetFamily
 
     var body: some View {
-        Text("— ft")
+        switch widgetFamily {
+        case .accessoryCircular:
+            circularView
+        case .accessoryInline:
+            inlineView
+        default:
+            smallView
+        }
+    }
+
+    private var smallView: some View {
+        VStack(spacing: 4) {
+            if entry.isPlaceholder || entry.distanceFeet <= 0 {
+                Text("— ft")
+                    .font(.headline)
+            } else {
+                Text(WidgetDistanceFormatter.compact(entry.distanceFeet))
+                    .font(.system(.title2, design: .rounded))
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                Text("today")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var circularView: some View {
+        VStack(spacing: 2) {
+            if entry.isPlaceholder || entry.distanceFeet <= 0 {
+                Text("—")
+                    .font(.headline)
+                Text("ft")
+                    .font(.caption2)
+            } else {
+                Text(WidgetDistanceFormatter.compact(entry.distanceFeet))
+                    .font(.headline)
+                    .minimumScaleFactor(0.5)
+                    .lineLimit(1)
+            }
+        }
+    }
+
+    private var inlineView: some View {
+        if entry.isPlaceholder || entry.distanceFeet <= 0 {
+            Text("— ft scrolled")
+        } else {
+            Text("~\(WidgetDistanceFormatter.compact(entry.distanceFeet)) scrolled")
+        }
     }
 }
 
@@ -38,7 +106,7 @@ struct DailyDistanceWidget: Widget {
         }
         .configurationDisplayName("Daily Distance")
         .description("Shows today's estimated scroll distance.")
-        .supportedFamilies([.systemSmall])
+        .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryInline])
     }
 }
 
@@ -46,5 +114,17 @@ struct DailyDistanceWidget: Widget {
 struct OdoWidgetBundle: WidgetBundle {
     var body: some Widget {
         DailyDistanceWidget()
+    }
+}
+
+// MARK: - Formatting
+
+private enum WidgetDistanceFormatter {
+    static func compact(_ feet: Double) -> String {
+        if feet < 5280 {
+            return "\(Int(feet.rounded())) ft"
+        } else {
+            return String(format: "%.1f mi", feet / 5280.0)
+        }
     }
 }
