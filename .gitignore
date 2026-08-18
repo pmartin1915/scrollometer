@@ -22,3 +22,6 @@ fastlane/test_output
 
 # Orchestration scratch
 .orchestrate/
+
+# Session-local Claude settings
+.claude/

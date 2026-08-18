@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "profiles": [
+    {
+      "id": "tiktok",
+      "screenHeightsPerMinute": 7.1,
+      "basis": "Avg watch time ~8.4 s/video (Statista 2024); one full-screen swipe per video"
+    },
+    {
+      "id": "instagram",
+      "screenHeightsPerMinute": 6.5,
+      "basis": "Reels avg watch 6-10 s blended with slower feed/grid browsing"
+    },
+    {
+      "id": "youtube",
+      "screenHeightsPerMinute": 4.5,
+      "basis": "Shorts watch times run longer; long-form viewing dampens the average"
+    },
+    {
+      "id": "x",
+      "screenHeightsPerMinute": 9.0,
+      "basis": "Text-feed scrolling, calibrated against Robertson et al. 2024 (~300 ft/day aggregate)"
+    },
+    {
+      "id": "reddit",
+      "screenHeightsPerMinute": 8.0,
+      "basis": "Mixed text/media feed"
+    },
+    {
+      "id": "other_video",
+      "screenHeightsPerMinute": 6.0,
+      "basis": "Generic short-form default"
+    },
+    {
+      "id": "other_text",
+      "screenHeightsPerMinute": 8.5,
+      "basis": "Generic text-feed default"
+    }
+  ]
+}

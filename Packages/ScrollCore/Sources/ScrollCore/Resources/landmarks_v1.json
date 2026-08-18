@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "landmarks": [
+    { "id": "football_field", "name": "football field", "plural": "football fields", "feet": 300 },
+    { "id": "statue_of_liberty", "name": "Statue of Liberty", "plural": "Statues of Liberty", "feet": 305 },
+    { "id": "eiffel_tower", "name": "Eiffel Tower", "plural": "Eiffel Towers", "feet": 1083 },
+    { "id": "empire_state", "name": "Empire State Building", "plural": "Empire State Buildings", "feet": 1454 },
+    { "id": "burj_khalifa", "name": "Burj Khalifa", "plural": "Burj Khalifas", "feet": 2717 },
+    { "id": "golden_gate_span", "name": "Golden Gate Bridge main span", "plural": "Golden Gate Bridge main spans", "feet": 4200 },
+    { "id": "mile", "name": "mile", "plural": "miles", "feet": 5280 },
+    { "id": "central_park", "name": "length of Central Park", "plural": "lengths of Central Park", "feet": 13200 },
+    { "id": "five_k", "name": "5K race", "plural": "5K races", "feet": 16404 },
+    { "id": "half_marathon", "name": "half marathon", "plural": "half marathons", "feet": 69168 },
+    { "id": "manhattan", "name": "length of Manhattan", "plural": "lengths of Manhattan", "feet": 70752 },
+    { "id": "marathon", "name": "marathon", "plural": "marathons", "feet": 138336 }
+  ]
+}
