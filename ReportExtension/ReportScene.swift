@@ -1,6 +1,11 @@
 import DeviceActivity
 import SwiftUI
 
+extension DeviceActivityReport.Context {
+    // Context is app-defined; the host app must request the same raw value.
+    static let totalActivity = Self("Total Activity")
+}
+
 @main
 struct ReportExtension: DeviceActivityReportExtension {
     var body: some DeviceActivityReportScene {
