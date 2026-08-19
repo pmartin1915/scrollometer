@@ -1,6 +1,16 @@
 # STATE — Scrollometer
 
-Updated: 2026-08-18 (session 2: portal registration + entitlement FILED + WP4 merged; WP5+WP6 dispatched to Kimi)
+Updated: 2026-08-18 (session 3: Mac blocker ELIMINATED — GitHub Actions CI pipeline, repo pushed public to github.com/pmartin1915/scrollometer)
+
+## Session 3: the no-Mac CI path (plan of record: `C:\Users\perry\.claude\plans\i-am-a-27-cosmic-cake.md`)
+
+- **The "one Mac session" blocker is gone.** wilderness + burn-wizard proved bot-only iOS build/sign/upload on macOS runners; adapted here. Three phases:
+  - **Phase A (LIVE)**: `ios-compile.yml` — unsigned build of all 4 targets + ScrollStore tests on `macos-26`. This is the compile-verification loop for every API flagged below; iterate red→fix→dispatch until green.
+  - **Phase B (next)**: dev-signed IPA from CI → sideload from Windows via pymobiledevice3 (NOT Sideloadly — it re-signs and strips Family Controls) → M1 device tests. **Not gated on Apple's grant** (Family Controls Development needs none). Needs: openssl CSR on Windows, dev cert + iPhone UDID + 4 dev profiles via portal browser session, secrets per `docs/ci-build.md`.
+  - **Phase C (gated on entitlement grant)**: distribution signing + altool → TestFlight. Profiles must be created AFTER enabling the granted capability. Needs Perry to locate the wilderness distribution cert PEM/key + ASC .p8 originals (secrets can't be copied between GitHub repos).
+- **Hosting decided**: public repo `pmartin1915/scrollometer` (free macOS minutes) → flip private once Phase C is green. Perry approved 2026-08-18.
+- project.yml now carries `CODE_SIGN_STYLE: Manual`, `DEVELOPMENT_TEAM`, per-target `PROVISIONING_PROFILE_SPECIFIER: $(ODO_PROFILE_*)` (names injected at archive time), and a shared scheme. GRDB floor bumped to 6.16 (`.wal` requirement). Runbook: `docs/ci-build.md`.
+- **Email discrepancy to resolve**: entitlement watch says pmartin1912@gmail.com; session identity is pmartin1913@gmail.com. Confirm which inbox is the Apple ID before the grant email is missed.
 
 ## Session 2 additions
 
@@ -23,10 +33,10 @@ Updated: 2026-08-18 (session 2: portal registration + entitlement FILED + WP4 me
 
 ## Next (in order)
 
-1. **OPERATOR (critical path): M0 Mac session** — `docs/mac-setup-checklist.md` steps 1–8, and **file the Family Controls distribution entitlement request** (`docs/entitlement-request.md` has the submission text ready; Account Holder sign-in required). Apple lead time is days-to-weeks; everything else can proceed in parallel. Also: name-check "Scrollometer" (App Store search + USPTO + domain).
-2. **WP4** (ScrollStore: GRDB schema, migrations, SharedDefaultsBridge) — spec in plan; tests are Mac-only.
-3. **WP5** (MonitorExtension + MonitoringService) — CLOSEST review; keep extension free of GRDB.
-4. **WP6** (onboarding + token labeling), then WP7/WP8 UI.
+1. **Phase A green**: iterate `ios-compile.yml` until all 4 targets compile and ScrollStore tests pass; check off the unverified-API list as items compile. Commit `Packages/ScrollStore/Package.resolved` from the CI artifact once green.
+2. **Phase B**: Windows CSR → portal session (dev cert, iPhone UDID, 4 dev profiles) → secrets → `ios-build.yml` dev archive → pymobiledevice3 install → `docs/on-device-test-script.md` A–C = **M1 gate**.
+3. **WP9** (nudges/goal/settings) once M1 numbers are in.
+4. **Phase C + WP10** (paywall/submission) once the entitlement grant lands. Name-check "Scrollometer" via the App Store Connect app-record creation (can happen any time).
 
 ## Notes / decisions this session
 

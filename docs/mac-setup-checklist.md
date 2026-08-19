@@ -1,4 +1,10 @@
-# Mac setup checklist (one-time + per-session)
+# Mac setup checklist (SUPERSEDED — see ci-build.md)
+
+> **2026-08-18: the Mac path is superseded.** All Xcode-dependent steps now run
+> on GitHub Actions macOS runners (`ios-compile.yml`, `ios-build.yml`); device
+> installs happen from Windows via pymobiledevice3. See `docs/ci-build.md`.
+> Steps 1–3 below were completed via the portal on 2026-08-18 and are kept as a
+> record; steps 4–8 and the per-session section are replaced by the CI runbook.
 
 Everything scriptable lives in the repo (`project.yml`, entitlements plists, SPM packages). These are the steps that must happen on the Mac / in the Apple Developer portal.
 
