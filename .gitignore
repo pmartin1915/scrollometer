@@ -9,8 +9,9 @@ DerivedData/
 xcuserdata/
 *.xcuserstate
 
-# SPM
+# SPM — but keep package-level resolutions committed for reproducible CI test runs
 Package.resolved
+!Packages/**/Package.resolved
 
 # macOS
 .DS_Store

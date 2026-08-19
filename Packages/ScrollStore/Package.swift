@@ -9,7 +9,8 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../ScrollCore"),
-        .package(url: "https://github.com/groue/GRDB.swift", from: "6.0.0"),
+        // 6.16 is the floor for Configuration.journalMode = .wal (used in ScrollStore).
+        .package(url: "https://github.com/groue/GRDB.swift", from: "6.16.0"),
     ],
     targets: [
         .target(

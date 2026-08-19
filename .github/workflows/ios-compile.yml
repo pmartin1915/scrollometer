@@ -1,0 +1,65 @@
+# Unsigned compile verification — the CI stand-in for a local Mac.
+#
+# Builds all 4 targets (app + monitor + report + widgets) against the iOS SDK
+# with signing disabled, and runs the ScrollStore test suite (GRDB needs macOS;
+# the ubuntu container in scrollcore-tests.yml can't run it).
+#
+# workflow_dispatch only: macOS runners bill 10x on private repos. While the
+# repo is public these minutes are free, but keep the trigger manual anyway so
+# a doc-only push never burns a 10-minute build.
+name: iOS Compile Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  compile:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - name: Cache SPM packages
+        uses: actions/cache@v5
+        with:
+          path: .spm-packages
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.swift') }}
+          restore-keys: ${{ runner.os }}-spm-
+
+      - name: Generate Xcode project
+        run: |
+          xcodegen generate
+          ls Scrollometer.xcodeproj
+
+      # Raw xcodebuild logs on purpose — compile errors from APIs written
+      # without a Swift toolchain must be fully diagnosable from the run page.
+      - name: Build all targets (unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project Scrollometer.xcodeproj \
+            -scheme Scrollometer \
+            -destination 'generic/platform=iOS' \
+            -clonedSourcePackagesDirPath .spm-packages \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: ScrollStore tests (macOS-native)
+        run: swift test --package-path Packages/ScrollStore
+
+      - name: Upload Package.resolved for pinning
+        if: success()
+        uses: actions/upload-artifact@v6
+        with:
+          name: scrollstore-package-resolved
+          path: Packages/ScrollStore/Package.resolved
+          if-no-files-found: warn
+          retention-days: 30

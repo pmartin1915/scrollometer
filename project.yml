@@ -6,6 +6,8 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.10"
+    DEVELOPMENT_TEAM: NN8F5WX25R
+    CODE_SIGN_STYLE: Manual
 packages:
   ScrollCore:
     path: Packages/ScrollCore
@@ -31,6 +33,12 @@ targets:
         # the committed plists authoritative.
         INFOPLIST_FILE: App/Info.plist
         GENERATE_INFOPLIST_FILE: NO
+        # Profile names are injected per-run on the xcodebuild command line
+        # (ODO_PROFILE_* vars) so one project serves unsigned CI compiles,
+        # dev-signed device builds, and App Store archives.
+        PROVISIONING_PROFILE_SPECIFIER: $(ODO_PROFILE_APP)
+    # xcodebuild -scheme/archive on CI needs a shared scheme; XcodeGen emits none by default.
+    scheme: {}
     dependencies:
       - package: ScrollCore
       - package: ScrollStore
@@ -56,6 +64,7 @@ targets:
       base:
         INFOPLIST_FILE: MonitorExtension/Info.plist
         GENERATE_INFOPLIST_FILE: NO
+        PROVISIONING_PROFILE_SPECIFIER: $(ODO_PROFILE_MONITOR)
     dependencies:
       - package: ScrollCore
   ReportExtension:
@@ -76,6 +85,7 @@ targets:
       base:
         INFOPLIST_FILE: ReportExtension/Info.plist
         GENERATE_INFOPLIST_FILE: NO
+        PROVISIONING_PROFILE_SPECIFIER: $(ODO_PROFILE_REPORT)
     dependencies:
       - package: ScrollCore
   OdoWidgets:
@@ -94,6 +104,7 @@ targets:
       base:
         INFOPLIST_FILE: OdoWidgets/Info.plist
         GENERATE_INFOPLIST_FILE: NO
+        PROVISIONING_PROFILE_SPECIFIER: $(ODO_PROFILE_WIDGETS)
     dependencies:
       - package: ScrollCore
       - package: ScrollStore
