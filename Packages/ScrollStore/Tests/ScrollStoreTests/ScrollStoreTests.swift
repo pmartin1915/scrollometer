@@ -146,8 +146,9 @@ final class ScrollStoreTests: XCTestCase {
             minutes: 30,
             profileID: AppLabel.tiktok.defaultVelocityProfileID
         )
-        XCTAssertEqual(cache.first?.feet, expected.feet, accuracy: 0.001)
-        XCTAssertEqual(cache.first?.velocityTableVersion, expected.tableVersion)
+        let cacheRow = try XCTUnwrap(cache.first)
+        XCTAssertEqual(cacheRow.feet, expected.feet, accuracy: 0.001)
+        XCTAssertEqual(cacheRow.velocityTableVersion, expected.tableVersion)
 
         let usage = try database.writer.read { try DailyUsageRecord.fetchAll($0) }
         XCTAssertEqual(usage.count, 2)
