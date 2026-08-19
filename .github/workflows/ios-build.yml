@@ -1,0 +1,243 @@
+# Signed build pipeline: dev-signed IPA for Windows sideload (method=debugging)
+# or App Store archive + TestFlight upload (method=app-store-connect).
+#
+# Signing recipe proven in wilderness/burn-wizard CI, extended here for 4
+# targets: the p12 is assembled on the runner from PEM secrets (MUST use
+# /usr/bin/openssl LibreSSL — Homebrew OpenSSL 3 writes a PBMAC1 MAC that
+# `security import` rejects), and ExportOptions carries one provisioningProfiles
+# entry per bundle ID.
+#
+# Secrets required per method are listed in docs/ci-build.md.
+name: iOS Build
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      method:
+        description: 'debugging = dev-signed IPA for sideload; app-store-connect = TestFlight'
+        type: choice
+        required: true
+        default: debugging
+        options:
+          - debugging
+          - app-store-connect
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 60
+    outputs:
+      method: ${{ steps.method.outputs.method }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Resolve signing method
+        id: method
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "method=app-store-connect" >> "$GITHUB_OUTPUT"
+          else
+            echo "method=${{ inputs.method }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Set up signing keychain
+        env:
+          METHOD: ${{ steps.method.outputs.method }}
+          DEV_CERT_PEM: ${{ secrets.APPLE_DEV_CERTIFICATE_PEM }}
+          DEV_KEY: ${{ secrets.APPLE_DEV_PRIVATE_KEY }}
+          DIST_CERT_PEM: ${{ secrets.APPLE_CERTIFICATE_PEM }}
+          DIST_KEY: ${{ secrets.APPLE_PRIVATE_KEY }}
+          P12_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ "$METHOD" = "debugging" ]; then
+            CERT_B64="$DEV_CERT_PEM"; KEY_B64="$DEV_KEY"
+          else
+            CERT_B64="$DIST_CERT_PEM"; KEY_B64="$DIST_KEY"
+          fi
+          [ -n "$CERT_B64" ] || { echo "::error::certificate secret for method=$METHOD is empty"; exit 1; }
+
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 12)
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+
+          echo "$CERT_B64" | base64 --decode > "$RUNNER_TEMP/cert.pem"
+          echo "$KEY_B64"  | base64 --decode > "$RUNNER_TEMP/key.pem"
+          # LibreSSL on purpose; see header comment.
+          /usr/bin/openssl pkcs12 -export \
+            -out "$RUNNER_TEMP/certificate.p12" \
+            -inkey "$RUNNER_TEMP/key.pem" \
+            -in "$RUNNER_TEMP/cert.pem" \
+            -passout pass:"$P12_PASSWORD"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$KEYCHAIN_PATH" \
+            -P "$P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" > /dev/null
+          rm -f "$RUNNER_TEMP/cert.pem" "$RUNNER_TEMP/key.pem" "$RUNNER_TEMP/certificate.p12"
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+
+      - name: Install provisioning profiles
+        env:
+          METHOD: ${{ steps.method.outputs.method }}
+          DEV_APP: ${{ secrets.PROVISION_DEV_APP }}
+          DEV_MONITOR: ${{ secrets.PROVISION_DEV_MONITOR }}
+          DEV_REPORT: ${{ secrets.PROVISION_DEV_REPORT }}
+          DEV_WIDGETS: ${{ secrets.PROVISION_DEV_WIDGETS }}
+          DIST_APP: ${{ secrets.PROVISION_DIST_APP }}
+          DIST_MONITOR: ${{ secrets.PROVISION_DIST_MONITOR }}
+          DIST_REPORT: ${{ secrets.PROVISION_DIST_REPORT }}
+          DIST_WIDGETS: ${{ secrets.PROVISION_DIST_WIDGETS }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          if [ "$METHOD" = "debugging" ]; then
+            PROFILES=("$DEV_APP" "$DEV_MONITOR" "$DEV_REPORT" "$DEV_WIDGETS")
+          else
+            PROFILES=("$DIST_APP" "$DIST_MONITOR" "$DIST_REPORT" "$DIST_WIDGETS")
+          fi
+          i=0
+          for B64 in "${PROFILES[@]}"; do
+            i=$((i+1))
+            [ -n "$B64" ] || { echo "::error::profile secret #$i for method=$METHOD is empty"; exit 1; }
+            TMP="$RUNNER_TEMP/profile_$i.mobileprovision"
+            echo "$B64" | base64 --decode > "$TMP"
+            UUID=$(security cms -D -i "$TMP" | plutil -extract UUID raw -o - -)
+            NAME=$(security cms -D -i "$TMP" | plutil -extract Name raw -o - -)
+            cp "$TMP" ~/Library/MobileDevice/Provisioning\ Profiles/"$UUID".mobileprovision
+            echo "installed profile: $NAME ($UUID)"
+            rm -f "$TMP"
+          done
+
+      - name: Archive
+        env:
+          METHOD: ${{ steps.method.outputs.method }}
+        run: |
+          set -o pipefail
+          if [ "$METHOD" = "debugging" ]; then
+            IDENTITY="Apple Development"
+            P_APP="Scrollometer App Dev"; P_MON="Scrollometer Monitor Dev"
+            P_REP="Scrollometer Report Dev"; P_WID="Scrollometer Widgets Dev"
+          else
+            IDENTITY="Apple Distribution"
+            P_APP="Scrollometer App Store"; P_MON="Scrollometer Monitor App Store"
+            P_REP="Scrollometer Report App Store"; P_WID="Scrollometer Widgets App Store"
+          fi
+          xcodebuild archive \
+            -project Scrollometer.xcodeproj \
+            -scheme Scrollometer \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/Scrollometer.xcarchive" \
+            CODE_SIGN_IDENTITY="$IDENTITY" \
+            ODO_PROFILE_APP="$P_APP" \
+            ODO_PROFILE_MONITOR="$P_MON" \
+            ODO_PROFILE_REPORT="$P_REP" \
+            ODO_PROFILE_WIDGETS="$P_WID"
+
+      - name: Patch build number into archive
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/Scrollometer.xcarchive/Products/Applications/Scrollometer.app"
+          # ExtensionKit extensions live under Extensions/, legacy ones under PlugIns/.
+          for PLIST in "$APP/Info.plist" "$APP"/PlugIns/*.appex/Info.plist "$APP"/Extensions/*.appex/Info.plist; do
+            [ -f "$PLIST" ] || continue
+            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${{ github.run_number }}" "$PLIST"
+            echo "CFBundleVersion=${{ github.run_number }} -> $PLIST"
+          done
+
+      - name: Assert archive SDK
+        run: |
+          SDK=$(/usr/libexec/PlistBuddy -c "Print :ApplicationProperties:SigningIdentity" "$RUNNER_TEMP/Scrollometer.xcarchive/Info.plist" 2>/dev/null || true)
+          DTSDK=$(defaults read "$RUNNER_TEMP/Scrollometer.xcarchive/Products/Applications/Scrollometer.app/Info" DTSDKName 2>/dev/null || true)
+          echo "SigningIdentity: $SDK / DTSDKName: $DTSDK"
+          case "$DTSDK" in
+            iphoneos26*) echo "SDK OK" ;;
+            *) echo "::error::archive built with $DTSDK, need iphoneos26.x"; exit 1 ;;
+          esac
+
+      - name: Export IPA
+        env:
+          METHOD: ${{ steps.method.outputs.method }}
+        run: |
+          set -euo pipefail
+          if [ "$METHOD" = "debugging" ]; then
+            P_APP="Scrollometer App Dev"; P_MON="Scrollometer Monitor Dev"
+            P_REP="Scrollometer Report Dev"; P_WID="Scrollometer Widgets Dev"
+            CERT="Apple Development"
+          else
+            P_APP="Scrollometer App Store"; P_MON="Scrollometer Monitor App Store"
+            P_REP="Scrollometer Report App Store"; P_WID="Scrollometer Widgets App Store"
+            CERT="Apple Distribution"
+          fi
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>$METHOD</string>
+            <key>teamID</key><string>NN8F5WX25R</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>$CERT</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.martinapps.scrolldistance</key><string>$P_APP</string>
+              <key>com.martinapps.scrolldistance.monitor</key><string>$P_MON</string>
+              <key>com.martinapps.scrolldistance.report</key><string>$P_REP</string>
+              <key>com.martinapps.scrolldistance.widgets</key><string>$P_WID</string>
+            </dict>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/Scrollometer.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export"
+          ls -la "$RUNNER_TEMP/export"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: scrollometer-ipa
+          path: ${{ runner.temp }}/export/*.ipa
+          retention-days: 30
+
+      - name: Clean up keychain
+        if: always()
+        run: |
+          [ -n "${KEYCHAIN_PATH:-}" ] && security delete-keychain "$KEYCHAIN_PATH" || true
+
+  upload-to-app-store:
+    needs: build
+    if: needs.build.outputs.method == 'app-store-connect'
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: scrollometer-ipa
+          path: ipa
+
+      - name: Upload to App Store Connect
+        env:
+          API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          [ -n "$API_KEY" ] || { echo "::error::APP_STORE_CONNECT_API_KEY is empty"; exit 1; }
+          mkdir -p ~/private_keys
+          echo "$API_KEY" > ~/private_keys/AuthKey_"$API_KEY_ID".p8
+          chmod 600 ~/private_keys/AuthKey_"$API_KEY_ID".p8
+          IPA=$(ls ipa/*.ipa | head -1)
+          # NOTE: -exportArchive succeeding is NOT an upload; this step is the upload.
+          xcrun altool --upload-app --file "$IPA" --type ios \
+            --apiKey "$API_KEY_ID" --apiIssuer "$API_ISSUER_ID"

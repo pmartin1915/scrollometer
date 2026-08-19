@@ -59,9 +59,11 @@ Windows with openssl, RSA-2048). Devices → register the iPhone UDID. Profiles 
 `Scrollometer Widgets Dev`.
 
 Dist (Phase C, AFTER the grant email): enable Family Controls (Distribution) on
-the app/monitor/report App IDs FIRST, then create 4 "App Store" profiles
-(`Scrollometer App Store` etc.) — profiles embed entitlements at creation time,
-so ordering matters.
+the app/monitor/report App IDs FIRST, then create 4 "App Store" profiles —
+profiles embed entitlements at creation time, so ordering matters. Names must
+match `ios-build.yml` exactly: `Scrollometer App Store`,
+`Scrollometer Monitor App Store`, `Scrollometer Report App Store`,
+`Scrollometer Widgets App Store`.
 
 **Pre-flight before burning CI minutes** — verify entitlements inside each
 downloaded profile on Windows:

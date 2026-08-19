@@ -31,10 +31,18 @@ Updated: 2026-08-18 (session 3: Mac blocker ELIMINATED — GitHub Actions CI pip
 - **WP2+WP3 (ScrollCore domain logic)**: conversion engine + velocity/device/landmark tables + TokenHasher + high-water accumulator + threshold ladder + reconciler. **34 tests green** via `docker run … swift:5.10 swift test` (repeat locally: `MSYS_NO_PATHCONV=1 docker run --rm -v "C:/Users/perry/DevProjects/swipe_length/Packages/ScrollCore:/src" -w /src swift:5.10 swift test`). Authored by Claude directly (Kimi lane broke mid-session — see Notes).
 - Calibration note: 60 min TikTok on a 6.1" phone ≈ **197 ft** (7.1 screens/min × 5.56 in). The plan's earlier "340–420 ft" AC was bad arithmetic; 197 ft/hr is coherent with the NYU ~300 ft/day average-user aggregate. Methodology page copy already matches.
 
+## Phase A: GREEN (2026-08-18, run 5)
+
+All 4 targets compile against the iOS 26 SDK and the ScrollStore suite passes (first-ever run). **Every compile-unverified API from the Kimi handoffs is now verified** — the DeviceActivity inits, `Label(token)`, `familyActivityPicker`, `@Observable` wiring, `Plottable` extension, `Transferable`/`ImageRenderer`, widget DB guard all compile as written. Five CI iterations; fixes were:
+1. `DeviceActivityReport.Context` is app-defined → added `.totalActivity` extension (ReportScene.swift).
+2. Missing imports: `ScrollStore` in OdoApp, `ManagedSettings` (for `ApplicationToken`) in both onboarding files.
+3. **Latent WP1 bug caught**: XcodeGen has no per-target `bundleId:` key — it was silently ignored and every target built as `com.martinapps.<TargetName>`. Now `PRODUCT_BUNDLE_IDENTIFIER` settings. A Mac build would have hit the same wrong-ID trap.
+4. Test-only `Double?` unwrap in ScrollStoreTests.
+SPM pins committed (GRDB 6.29.3). `ios-build.yml` authored for both dev-sign and TestFlight (runs once secrets exist).
+
 ## Next (in order)
 
-1. **Phase A green**: iterate `ios-compile.yml` until all 4 targets compile and ScrollStore tests pass; check off the unverified-API list as items compile. Commit `Packages/ScrollStore/Package.resolved` from the CI artifact once green.
-2. **Phase B**: Windows CSR → portal session (dev cert, iPhone UDID, 4 dev profiles) → secrets → `ios-build.yml` dev archive → pymobiledevice3 install → `docs/on-device-test-script.md` A–C = **M1 gate**.
+1. **Phase B (needs Perry attended)**: Windows CSR → portal session (dev cert, iPhone UDID, 4 dev profiles named `Scrollometer {App,Monitor,Report,Widgets} Dev`) → secrets per `docs/ci-build.md` → dispatch `iOS Build` method=debugging → pymobiledevice3 install → `docs/on-device-test-script.md` A–C = **M1 gate**.
 3. **WP9** (nudges/goal/settings) once M1 numbers are in.
 4. **Phase C + WP10** (paywall/submission) once the entitlement grant lands. Name-check "Scrollometer" via the App Store Connect app-record creation (can happen any time).
 
