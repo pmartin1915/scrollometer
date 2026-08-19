@@ -10,7 +10,7 @@ Updated: 2026-08-18 (session 3: Mac blocker ELIMINATED — GitHub Actions CI pip
   - **Phase C (gated on entitlement grant)**: distribution signing + altool → TestFlight. Profiles must be created AFTER enabling the granted capability. Needs Perry to locate the wilderness distribution cert PEM/key + ASC .p8 originals (secrets can't be copied between GitHub repos).
 - **Hosting decided**: public repo `pmartin1915/scrollometer` (free macOS minutes) → flip private once Phase C is green. Perry approved 2026-08-18.
 - project.yml now carries `CODE_SIGN_STYLE: Manual`, `DEVELOPMENT_TEAM`, per-target `PROVISIONING_PROFILE_SPECIFIER: $(ODO_PROFILE_*)` (names injected at archive time), and a shared scheme. GRDB floor bumped to 6.16 (`.wal` requirement). Runbook: `docs/ci-build.md`.
-- **Email discrepancy to resolve**: entitlement watch says pmartin1912@gmail.com; session identity is pmartin1913@gmail.com. Confirm which inbox is the Apple ID before the grant email is missed.
+- **ENTITLEMENT GRANTED 2026-08-18 (same day!)** — "Family Controls (Distribution) has been assigned to your account" email from developer@email.apple.com. Phase C / WP10 are un-gated. Email note: pmartin1912@gmail.com is the Apple ID inbox and its mail is readable via the connected Gmail — no discrepancy.
 
 ## Session 2 additions
 

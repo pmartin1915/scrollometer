@@ -1,6 +1,6 @@
 # Family Controls (Distribution) entitlement request — log + submission text
 
-**Status: SUBMITTED 2026-08-18** (via Claude-driven browser session, Perry authenticated and approved the submit). Apple's confirmation: "We'll review your request and contact you soon with a status update." **Watch pmartin1912@gmail.com** for the decision; on grant, follow "After the distribution entitlement is granted" in `mac-setup-checklist.md`.
+**Status: GRANTED 2026-08-18** — same-day turnaround. Email from developer@email.apple.com to pmartin1912@gmail.com, 2026-08-18: "The entitlement for Family Controls (Distribution) has been assigned to your account, and you can now configure this capability for eligible apps." Next: enable the capability on the app/monitor/report App IDs, then create App Store profiles (in that order — profiles embed entitlements at creation). See `ci-build.md` Phase C.
 
 **Process note (2026 form)**: the request is now a TEAM-level acknowledgment — prefilled name/email/Team ID plus agreeing to the Family Controls terms (primary purpose = personal device usage management; no data sharing/ads/brokers). There is no per-bundle-ID justification field anymore; the drafted text below was not needed but is kept for App Review notes reuse.
 
@@ -33,3 +33,5 @@ File **one request covering all three Screen Time bundle IDs** (the entitlement 
 | Date | Event |
 |---|---|
 | 2026-08-18 | Request text drafted; awaiting App ID creation + Account Holder filing |
+| 2026-08-18 | Filed as Account Holder (team-level acknowledgment form) |
+| 2026-08-18 | **GRANTED** — "assigned to your account" email received same day |
