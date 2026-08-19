@@ -1,5 +1,6 @@
 import FamilyControls
 import Foundation
+import ManagedSettings
 import Observation
 import ScrollCore
 import SwiftUI
