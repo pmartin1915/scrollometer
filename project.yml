@@ -18,7 +18,6 @@ targets:
     platform: iOS
     deploymentTarget: "17.0"
     type: application
-    bundleId: com.martinapps.scrolldistance
     sources:
       - path: App
         excludes:
@@ -31,6 +30,9 @@ targets:
         # info: is deliberately NOT used — XcodeGen regenerates that plist on every
         # `xcodegen generate`, clobbering hand-authored keys. INFOPLIST_FILE keeps
         # the committed plists authoritative.
+        # XcodeGen has no per-target `bundleId` key — the identifier MUST be a
+        # build setting, or it falls back to bundleIdPrefix + target name.
+        PRODUCT_BUNDLE_IDENTIFIER: com.martinapps.scrolldistance
         INFOPLIST_FILE: App/Info.plist
         GENERATE_INFOPLIST_FILE: NO
         # Profile names are injected per-run on the xcodebuild command line
@@ -52,7 +54,6 @@ targets:
     platform: iOS
     deploymentTarget: "17.0"
     type: app-extension
-    bundleId: com.martinapps.scrolldistance.monitor
     sources:
       - path: MonitorExtension
         excludes:
@@ -62,6 +63,7 @@ targets:
       path: MonitorExtension/MonitorExtension.entitlements
     settings:
       base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.martinapps.scrolldistance.monitor
         INFOPLIST_FILE: MonitorExtension/Info.plist
         GENERATE_INFOPLIST_FILE: NO
         PROVISIONING_PROFILE_SPECIFIER: $(ODO_PROFILE_MONITOR)
@@ -73,7 +75,6 @@ targets:
     # DeviceActivityReport extensions are ExtensionKit extensions (EXAppExtensionAttributes),
     # not legacy NSExtension app extensions.
     type: extensionkit-extension
-    bundleId: com.martinapps.scrolldistance.report
     sources:
       - path: ReportExtension
         excludes:
@@ -83,6 +84,7 @@ targets:
       path: ReportExtension/ReportExtension.entitlements
     settings:
       base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.martinapps.scrolldistance.report
         INFOPLIST_FILE: ReportExtension/Info.plist
         GENERATE_INFOPLIST_FILE: NO
         PROVISIONING_PROFILE_SPECIFIER: $(ODO_PROFILE_REPORT)
@@ -92,7 +94,6 @@ targets:
     platform: iOS
     deploymentTarget: "17.0"
     type: app-extension
-    bundleId: com.martinapps.scrolldistance.widgets
     sources:
       - path: OdoWidgets
         excludes:
@@ -102,6 +103,7 @@ targets:
       path: OdoWidgets/OdoWidgets.entitlements
     settings:
       base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.martinapps.scrolldistance.widgets
         INFOPLIST_FILE: OdoWidgets/Info.plist
         GENERATE_INFOPLIST_FILE: NO
         PROVISIONING_PROFILE_SPECIFIER: $(ODO_PROFILE_WIDGETS)
