@@ -138,6 +138,7 @@ jobs:
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/Scrollometer.xcarchive" \
             CODE_SIGN_IDENTITY="$IDENTITY" \
+            DEVELOPMENT_TEAM=NN8F5WX25R \
             ODO_PROFILE_APP="$P_APP" \
             ODO_PROFILE_MONITOR="$P_MON" \
             ODO_PROFILE_REPORT="$P_REP" \
