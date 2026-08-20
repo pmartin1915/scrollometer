@@ -1,6 +1,16 @@
 # STATE — Scrollometer
 
-Updated: 2026-08-18 (session 3: Mac blocker ELIMINATED — GitHub Actions CI pipeline, repo pushed public to github.com/pmartin1915/scrollometer)
+Updated: 2026-08-20 (session 4: Phase B GREEN — signing complete end-to-end, dev IPA builds in CI)
+
+## Session 4: portal session + Phase B green (Perry authenticated, Claude drove)
+
+- **All 16 GitHub secrets set; dev build run 32384989160 GREEN with `scrollometer-ipa` artifact (~2.5 MB).** Both dev and dist signing material is in place; TestFlight (Phase C) needs only a `v*.*.*` tag or dispatch.
+- Portal work: new Apple Development cert from a Windows CSR (`C:\Users\perry\.apple-signing\scrollometer\`, key-match verified by modulus), Family Controls (Distribution) enabled on app/monitor/report App IDs, all 8 provisioning profiles created (names per `docs/ci-build.md`), dist profiles signed by the wilderness "Apple Distribution: Perry Martin" cert (expires 2027-03-14, matches `APPLE_CERTIFICATE_PEM`).
+- **Pre-flight caught a real defect**: App Groups was enabled on all 4 App IDs but had NO group assigned — profiles carried an empty `com.apple.security.application-groups` array (session 2 registered the group but never assigned it to the App IDs). Assigned `group.com.martinapps.scrolldistance` on all 4, regenerated all 8 profiles, re-verified entitlements (`openssl smime` per runbook). Family Controls present in app/monitor/report profiles; widgets correctly has app-group only.
+- **CI fix 5 (050fa1c)**: `Signing for "ScrollCore_ScrollCore" requires a development team` — SPM resource-bundle targets (also GRDB_GRDB, swift-crypto_Crypto) don't inherit project.yml settings; the archive command line passes `CODE_SIGN_IDENTITY` globally, so `DEVELOPMENT_TEAM=NN8F5WX25R` must be passed there too. Resource bundles sign with identity+team, no profile.
+- Device: the one registered iPhone ("iOS Device (added by Expo)", 00008140-00166DAE…) is in all 4 dev profiles — no UDID step was needed.
+- Name check: "Scrollage" appears free on the App Store; decision deferred to App Store Connect record creation (display name is chosen then; bundle ID unaffected).
+- **NEXT (M1, operator-attended)**: download `scrollometer-ipa` from run 32384989160 (or dispatch fresh), `pip install pymobiledevice3`, sideload over USB (NOT Sideloadly), Developer Mode on, run `docs/on-device-test-script.md` A–C. Then WP9 unblocks.
 
 ## Session 3: the no-Mac CI path (plan of record: `C:\Users\perry\.claude\plans\i-am-a-27-cosmic-cake.md`)
 
